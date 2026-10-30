@@ -37,6 +37,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def root():
+    return {
+        "status": "online",
+        "service": "AICTE Application Scrutiny & EVC Review Assistant API",
+        "version": "2.0.0",
+        "docs_url": "/docs",
+        "health": "/health"
+    }
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "timestamp": datetime.datetime.now().isoformat()}
+
 # Session user mock
 current_user = {
     "id": "usr-101",
@@ -388,3 +402,8 @@ def get_json_report(app_id: str, db: Session = Depends(get_db)):
         "findings": findings,
         "evc_items": evc_items
     }
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)

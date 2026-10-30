@@ -19,6 +19,8 @@ import {
   RuleDefinition, AuditEvent, UserRole, WorkflowStage 
 } from './types';
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+
 export function App() {
   const [currentRole, setCurrentRole] = useState<UserRole>('Scrutiny Reviewer');
   const [officerName, setOfficerName] = useState('Prof. S. R. Sharma');
@@ -50,10 +52,10 @@ export function App() {
   const fetchData = async () => {
     try {
       const [appsRes, statsRes, rulesRes, auditRes] = await Promise.all([
-        fetch('/api/applications'),
-        fetch('/api/stats'),
-        fetch('/api/rules'),
-        fetch('/api/audit'),
+        fetch(`${API_BASE}/api/applications`),
+        fetch(`${API_BASE}/api/stats`),
+        fetch(`${API_BASE}/api/rules`),
+        fetch(`${API_BASE}/api/audit`),
       ]);
 
       if (appsRes.ok) {
@@ -96,9 +98,9 @@ export function App() {
     }
     try {
       const [docsRes, findingsRes, evcRes] = await Promise.all([
-        fetch(`/api/applications/${app.id}/documents`),
-        fetch(`/api/applications/${app.id}/findings`),
-        fetch(`/api/applications/${app.id}/evc`),
+        fetch(`${API_BASE}/api/applications/${app.id}/documents`),
+        fetch(`${API_BASE}/api/applications/${app.id}/findings`),
+        fetch(`${API_BASE}/api/applications/${app.id}/evc`),
       ]);
 
       if (docsRes.ok) {
@@ -138,7 +140,7 @@ export function App() {
   const handleRoleChange = async (role: UserRole) => {
     setCurrentRole(role);
     try {
-      const res = await fetch(`/api/auth/switch-role?role=${encodeURIComponent(role)}`, {
+      const res = await fetch(`${API_BASE}/api/auth/switch-role?role=${encodeURIComponent(role)}`, {
         method: 'POST',
       });
       if (res.ok) {
@@ -154,7 +156,7 @@ export function App() {
   // Finding disposition update
   const handleUpdateDisposition = async (findingId: string, disposition: string, notes: string) => {
     try {
-      const res = await fetch(`/api/findings/${findingId}/disposition`, {
+      const res = await fetch(`${API_BASE}/api/findings/${findingId}/disposition`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ disposition, reviewer_notes: notes }),
@@ -172,7 +174,7 @@ export function App() {
   // Document remap handler
   const handleRemapDocument = async (docId: string, newType: string, reason: string) => {
     try {
-      const res = await fetch(`/api/documents/${docId}/remap`, {
+      const res = await fetch(`${API_BASE}/api/documents/${docId}/remap`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ new_type: newType, reason }),
@@ -193,7 +195,7 @@ export function App() {
   // Mark document reviewed
   const handleMarkDocumentReviewed = async (docId: string) => {
     try {
-      await fetch(`/api/documents/${docId}`, {
+      await fetch(`${API_BASE}/api/documents/${docId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ document_status: 'Reviewed' })
@@ -208,7 +210,7 @@ export function App() {
   // Run live statutory rule engine verification
   const handleRunVerification = async (appId: string) => {
     try {
-      const res = await fetch(`/api/applications/${appId}/run-verification`, {
+      const res = await fetch(`${API_BASE}/api/applications/${appId}/run-verification`, {
         method: 'POST',
       });
       if (res.ok) {
@@ -227,7 +229,7 @@ export function App() {
   // EVC flag inspection handler
   const handleFlagInspection = async (evcId: string, needed: boolean, reason: string) => {
     try {
-      const res = await fetch(`/api/evc/${evcId}/flag-inspection`, {
+      const res = await fetch(`${API_BASE}/api/evc/${evcId}/flag-inspection`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inspection_needed: needed, inspection_reason: reason }),
@@ -245,7 +247,7 @@ export function App() {
   // Toggle rule
   const handleToggleRule = async (ruleId: string) => {
     try {
-      const res = await fetch(`/api/rules/${ruleId}/toggle`, { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/rules/${ruleId}/toggle`, { method: 'POST' });
       if (res.ok) {
         const updated = await res.json();
         setRules((prev) => prev.map((r) => (r.id === ruleId ? updated : r)));
@@ -297,7 +299,7 @@ export function App() {
   // Download PDF Report
   const handleDownloadPdf = () => {
     if (!activeApplication) return;
-    window.open(`/api/applications/${activeApplication.id}/report/pdf`, '_blank');
+    window.open(`${API_BASE}/api/applications/${activeApplication.id}/report/pdf`, '_blank');
   };
 
   // Sign out confirmation action
